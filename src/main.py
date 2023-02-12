@@ -5,10 +5,10 @@ if __name__ == '__main__':
     print("-------------------------------")
     print("CSCI-531 AES-128 Implementation")
     print("-------------------------------")
-    arr_key = tools.read_file("input\\key.txt")
+    arr_key = tools.read_file("..\input\key.txt")
     tools.debug_print_arr_ascii(arr_key)
 
-    arr_pt = tools.read_file("input\\plaintext.txt")
+    arr_pt = tools.read_file("..\input\plaintext.txt")
     tools.debug_print_arr_ascii(arr_pt)
 
 """
