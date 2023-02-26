@@ -9,7 +9,7 @@ INVALID_KEY_SIZE = 0xDEADDEAD
 
 def debug_print_arr_hex(hex_array):
     for x in range(len(hex_array)):
-        if x % 8 == 0 and x != 0:
+        if x % 4 == 0 and x != 0:
             print("\r\n")
         print(f'0x{hex_array[x]:02x}', end=' ')
     print()
@@ -37,13 +37,17 @@ def read_file(path):
 
 
 def read_AES_key(path):
-    with open(path, "rb") as AES_Key:
-        key = AES_Key.read()
+    with open(path, "rt") as AES_Key:
+        hex_arr = bytearray.fromhex(AES_Key.read())
+        return hex_arr
+
+"""
         if len(key) != AES_KEY_SIZE:
             print(f'[ERROR]: Input AES key is {len(key)} bytes. Should be {AES_KEY_SIZE} bytes. Exiting now...')
             exit(INVALID_KEY_SIZE)
         else:
             return key
+"""
 
 
 def read_plaintext(path):
