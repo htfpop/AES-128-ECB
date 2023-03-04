@@ -78,3 +78,20 @@ def compare_2d(arr1, arr2):
 
     return status
 
+def rot_word_L(word, amt):
+    print(f'pre-value: 0x{word:02x}\r\n')
+    if amt == 1:
+        return ((word << 8) & 0xFFFFFF00) | ((word >> 24) & 0x000000FF)
+    elif amt == 2:
+        return ((word << 16) & 0xFFFF0000) | ((word >> 16) & 0x0000FFFF)
+    elif amt == 3:
+        return ((word << 24) & 0xFF000000) | ((word >> 8) & 0x00FFFFFF)
+
+def rot_word_R(word, amt):
+    print(f'pre-value: 0x{word:02x}\r\n')
+    if amt == 1:
+        return ((word >> 8) & 0x00FFFFFF) | ((word << 24) & 0xFF000000)
+    elif amt == 2:
+        return ((word >> 16) & 0x0000FFFF) | ((word << 16) & 0xFFFF0000)
+    elif amt == 3:
+        return ((word >> 24) & 0x000000FF) | ((word << 8) & 0xFFFFFF00)
