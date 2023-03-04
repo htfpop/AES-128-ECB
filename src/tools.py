@@ -69,14 +69,17 @@ def bin_test(hexnum):
     hexnum += 0x1
     print(f'Hex + 1 0x{hexnum:02x}')
 
-def compare_2d(arr1, arr2):
+def compare_2d(arr1, arr2, test_num):
     status = 0
     for i in range(len(arr1)):
         for j in range(len(arr1[0])):
             if arr1[i][j] != arr2[i][j]:
               status = -1
 
-    return status
+    if status == 0:
+        print(f'[Test {test_num}]: PASS')
+    else:
+        print(f'[Test {test_num}]: FAIL')
 
 def rot_word_L(word, amt):
     print(f'pre-value: 0x{word:02x}\r\n')
