@@ -66,14 +66,10 @@ def mix_cols(state):
             [0x00, 0x00, 0x00, 0x00],
             [0x00, 0x00, 0x00, 0x00]]
 
-    col_index = 0
-
     for i, row in enumerate(temp):
         for j, col in enumerate(row):
             curr_col = [state[0][j], state[1][j], state[2][j], state[3][j]]
             temp[i][j] = mix_columns_transform(i, curr_col)
-
-
 
     return temp
 
