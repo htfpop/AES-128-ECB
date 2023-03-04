@@ -1,5 +1,3 @@
-from builtins import int
-
 import tools
 
 SBOX = [[0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76],
@@ -55,6 +53,7 @@ def test():
 
         start += 1
 
+
 def rot_word_L(word, amt):
     print(f'pre-value: 0x{word:02x}\r\n')
     if amt == 1:
@@ -64,11 +63,20 @@ def rot_word_L(word, amt):
     elif amt == 3:
         return ((word << 24) & 0xFF000000) | ((word >> 8) & 0x00FFFFFF)
 
+def rot_word_R(word, amt):
+    print(f'pre-value: 0x{word:02x}\r\n')
+    if amt == 1:
+        return ((word >> 8) & 0x00FFFFFF) | ((word << 24) & 0xFF000000)
+    elif amt == 2:
+        return ((word >> 16) & 0x0000FFFF) | ((word << 16) & 0xFFFF0000)
+    elif amt == 3:
+        return ((word >> 24) & 0x000000FF) | ((word << 8) & 0xFFFFFF00)
+
+
 if __name__ == '__main__':
     print("hello")
     #    s_box_sub(0xAB)
     # test()
-    #key = tools.read_AES_key("../input/key.txt")
-    #tools.debug_print_arr_hex(key)
+    # key = tools.read_AES_key("../input/key.txt")
+    # tools.debug_print_arr_hex(key)
     print(f'Value: 0x{rot_word_L(0x00563412, 1):02x}\r\n')
-
