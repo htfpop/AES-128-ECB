@@ -37,6 +37,16 @@ def s_box_sub(state):
 
     return state
 
+def sub_word(input_word):
+    byte_arr = input_word.to_bytes(4, 'big')
+    ret_word = [0,0,0,0]
+    for i, byte in enumerate(byte_arr):
+        ms_nibble = (byte & 0xF0) >> 4
+        ls_nibble = (byte & 0x0F)
+        ret_word[i] = s_box[ms_nibble][ls_nibble]
+
+    return int.from_bytes(ret_word, 'big')
+
 
 
 def mix_cols(state):
@@ -146,10 +156,57 @@ def sub_bytes_test():
 
     print(f'[END] Sub bytes Test')
 
+def key_expansion(aes_key):
+    w = [aes_key[0] << 24 | aes_key[1] << 16 | aes_key[2] << 8 | aes_key[3],
+         aes_key[4] << 24 | aes_key[5] << 16 | aes_key[6] << 8 | aes_key[7],
+         aes_key[8] << 24 | aes_key[9] << 16 | aes_key[10] << 8 | aes_key[11],
+         aes_key[12] << 24 | aes_key[13] << 16 | aes_key[14] << 8 | aes_key[15]]
+    temp = w[3]
+    r_const_ptr = 0
+    for x in range(4, 44, 1):
+
+        if x % 4 == 0:
+            temp = tools.rot_word_L(temp, 1)
+            #print(f'[Debug] After RotWord(): 0x{temp:02x}')
+            temp = sub_word(temp)
+            #print(f'[Debug] After SubWord(): 0x{temp:02x}')
+            #print(f'[Debug] Rcon: 0x{r_const[r_const_ptr]:02x}')
+            temp ^= r_const[r_const_ptr]
+            r_const_ptr += 1
+
+            #print(f'[Debug] After XOR with Rcon: 0x{temp:02x}')
+
+        temp ^= w[x - 4]
+        #print(f'[Debug] After XOR with w[i-Nk]: 0x{temp:02x}')
+        w.append(temp)
+
+    return w
+
+def key_expansion_test():
+    print(f'[START] Key Expansion Test')
+    key = [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c]
+    key = key_expansion(key)
+    KAT = [ 0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c,
+            0xa0fafe17,0x88542cb1,0x23a33939,0x2a6c7605,
+            0xf2c295f2,0x7a96b943,0x5935807a,0x7359f67f,
+            0x3d80477d,0x4716fe3e,0x1e237e44,0x6d7a883b,
+            0xef44a541,0xa8525b7f,0xb671253b,0xdb0bad00,
+            0xd4d1c6f8,0x7c839d87,0xcaf2b8bc,0x11f915bc,
+            0x6d88a37a,0x110b3efd,0xdbf98641,0xca0093fd,
+            0x4e54f70e,0x5f5fc9f3,0x84a64fb2,0x4ea6dc4f,
+            0xead27321,0xb58dbad2,0x312bf560,0x7f8d292f,
+            0xac7766f3,0x19fadc21,0x28d12941,0x575c006e,
+            0xd014f9a8,0xc9ee2589,0xe13f0cc8,0xb6630ca6 ]
+    tools.compare_word(key, KAT)
+
+    tools.debug_print_arr_hex(key)
+
+    print(f'[END] Key Expansion Test')
 
 if __name__ == '__main__':
     print("---- AES Encrypt Python Entry ----\r\n")
 
+    key_expansion_test()
     mix_cols_test()
     sub_bytes_test()
 

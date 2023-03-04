@@ -81,8 +81,21 @@ def compare_2d(arr1, arr2, test_num):
     else:
         print(f'[Test {test_num}]: FAIL')
 
+def compare_word(arr1, arr2):
+    status = 0
+    index = 0
+    for i in range(len(arr1)):
+        if arr1[i] != arr2[i]:
+            status = -1
+            index = i
+
+    if status == 0:
+        print(f'[Test]: PASS')
+    else:
+        print(f'[Test]: FAIL iteration {index} mismatch Arr1 = 0x{arr1[index]:02x} Arr2 = 0x{arr2[index]:02x}')
+
 def rot_word_L(word, amt):
-    print(f'pre-value: 0x{word:02x}\r\n')
+    #print(f'[Debug] pre-value: 0x{word:02x}\r\n')
     if amt == 1:
         return ((word << 8) & 0xFFFFFF00) | ((word >> 24) & 0x000000FF)
     elif amt == 2:
