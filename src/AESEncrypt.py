@@ -1,5 +1,12 @@
 import tools
 
+mix_col_matrix = [ [0x02, 0x03, 0x01, 0x01],
+                   [0x01, 0x02, 0x03, 0x01],
+                   [0x01, 0x01, 0x02, 0x03],
+                   [0x03, 0x01, 0x01, 0x02] ]
+
+
+
 SBOX = [[0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76],
         [0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0],
         [0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15],
@@ -72,11 +79,73 @@ def rot_word_R(word, amt):
     elif amt == 3:
         return ((word >> 24) & 0x000000FF) | ((word << 8) & 0xFFFFFF00)
 
+def mix_cols(state):
+    temp = [[0x00, 0x00, 0x00, 0x00],
+            [0x00, 0x00, 0x00, 0x00],
+            [0x00, 0x00, 0x00, 0x00],
+            [0x00, 0x00, 0x00, 0x00]]
+
+    col_index = 0
+
+    for row in temp:
+        curr_col = [state[0][col_index],state[1][col_index],state[2][col_index],state[3][col_index]]
+        for col in row:
+            temp[row][col] = mix_columns_transform(mix_col_matrix[row], curr_col) ^ \
+                             mix_columns_transform(mix_col_matrix[row], col + 1) ^ \
+                             mix_columns_transform(mix_col_matrix[row], col + 2) ^ \
+                             mix_columns_transform(mix_col_matrix[row], col + 3)
+
+
+
+    return temp
+
+def mix_columns_transform(I_row, S_Col):
+    temp = 0x00
+
+    for i in range(len(mix_col_matrix[I_row])):
+        element = mix_col_matrix[I_row][i]
+
+        if element == 0x02:
+            temp ^= (S_Col[i] << 1)
+            if S_Col[i] >= 0x80:
+                temp ^= 0x1B
+
+        elif element == 0x03:
+            temp ^= S_Col[i] ^ (S_Col[i] << 1)
+
+            if S_Col[i] >= 0x80:
+                temp ^= 0x1B
+
+        else:
+            temp ^= S_Col[i]
+    return temp & 0xFF
+
 
 if __name__ == '__main__':
     print("hello")
-    #    s_box_sub(0xAB)
+    #tools.debug_print_arr_2dhex(mix_col_matrix)
+    # s_box_sub(0xAB)
     # test()
     # key = tools.read_AES_key("../input/key.txt")
     # tools.debug_print_arr_hex(key)
-    print(f'Value: 0x{rot_word_L(0x00563412, 1):02x}\r\n')
+    #print(f'Value: 0x{rot_word_L(0x33563412, 2):02x}\r\n')
+
+    #mxcoltest = [0xd4, 0xe0, 0xb8, 0x1e]
+    mxcoltest = [0xd4, 0xbf, 0x5d, 0x30]
+    rt = [mix_columns_transform(0, mxcoltest), mix_columns_transform(1, mxcoltest), mix_columns_transform(2, mxcoltest), mix_columns_transform(3, mxcoltest)]
+    tools.debug_print_arr_hex(rt)
+
+    """
+    test_mx_cols = [[0xd4, 0xe0, 0xb8, 0x1e],
+                    [0xbf, 0xb4, 0x41, 0x27],
+                    [0x5d, 0x52, 0x11, 0x98],
+                    [0x30, 0xae, 0xf1, 0xe5]]
+
+    test = test_mx_cols[0]
+
+    state = mix_cols(test_mx_cols)
+"""
+
+
+
+

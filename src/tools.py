@@ -14,6 +14,11 @@ def debug_print_arr_hex(hex_array):
         print(f'0x{hex_array[x]:02x}', end=' ')
     print()
 
+def debug_print_arr_2dhex(hex_array):
+    for row in hex_array:
+        for col in row:
+            print(f'{col:#04x}', end=' ')
+        print()
 
 def debug_print_arr_ascii(hex_array):
     for x in range(len(hex_array)):
