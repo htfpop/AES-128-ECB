@@ -180,12 +180,31 @@ def key_expansion(aes_key):
         #print(f'[Debug] After XOR with w[i-Nk]: 0x{temp:02x}')
         w.append(temp)
 
-    return w
+    key_out = [
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0]
+
+    ]
+    for i in range(len(key_out)):
+        for j in range(len(key_out[0])):
+            key_out[i][j] = w[i * len(key_out[0]) + j]
+
+    return key_out
 
 def key_expansion_test():
     print(f'[START] Key Expansion Test')
     key = [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c]
     key = key_expansion(key)
+    """
     KAT = [ 0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c,
             0xa0fafe17,0x88542cb1,0x23a33939,0x2a6c7605,
             0xf2c295f2,0x7a96b943,0x5935807a,0x7359f67f,
@@ -200,7 +219,8 @@ def key_expansion_test():
     tools.compare_word(key, KAT)
 
     tools.debug_print_arr_hex(key)
-
+"""
+    tools.debug_print_arr_2dhex(key)
     print(f'[END] Key Expansion Test')
 
 if __name__ == '__main__':
