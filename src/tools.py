@@ -68,3 +68,13 @@ def read_plaintext(path):
 def bin_test(hexnum):
     hexnum += 0x1
     print(f'Hex + 1 0x{hexnum:02x}')
+
+def compare_2d(arr1, arr2):
+    status = 0
+    for i in range(len(arr1)):
+        for j in range(len(arr1[0])):
+            if arr1[i][j] != arr2[i][j]:
+              status = -1
+
+    return status
+
