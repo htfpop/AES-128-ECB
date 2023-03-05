@@ -1,6 +1,6 @@
 import AESEncrypt
+import aesdecrypt
 from src import tools
-
 
 def inv_shift_rows_test():
     KAT = [0x00, 0x44, 0x88, 0xcc], [0x11, 0x55, 0x99, 0xdd], [0x22, 0x66, 0xaa, 0xee], [0x33, 0x77, 0xbb, 0xff]  #Test vector FIPS197
@@ -12,7 +12,7 @@ def inv_shift_rows_test():
     tools.debug_print_arr_2dhex(state)
     print()
 
-    AESEncrypt.shift_rows_inv(state)
+    aesdecrypt.shift_rows_inv(state)
     tools.debug_print_arr_2dhex(state)
 
     tools.compare_2d(state, KAT, 0)
@@ -119,44 +119,56 @@ def inv_mix_cols_test():
 
     before0 = [[0xd4, 0xe0, 0xb8, 0x1e], [0xbf, 0xb4, 0x41, 0x27], [0x5d, 0x52, 0x11, 0x98], [0x30, 0xae, 0xf1, 0xe5]]
     state = AESEncrypt.mix_cols(before0)
-    state = AESEncrypt.inv_mix_cols(state)
+    state = aesdecrypt.inv_mix_cols(state)
     tools.compare_2d(state, before0, 0)
     tools.debug_print_arr_2dhex(state)
     print()
 
     before1 = [[0x49, 0x45, 0x7f, 0x77], [0xdb, 0x39, 0x02, 0xde], [0x87, 0x53, 0xd2, 0x96], [0x3b, 0x89, 0xf1, 0x1a]]
     state = AESEncrypt.mix_cols(before1)
-    state = AESEncrypt.inv_mix_cols(state)
+    state = aesdecrypt.inv_mix_cols(state)
     tools.compare_2d(state, before1, 1)
     tools.debug_print_arr_2dhex(state)
     print()
 
     before2 = [[0xac, 0xef, 0x13, 0x45], [0xc1, 0xb5, 0x23, 0x73], [0xd6, 0x5a, 0xcf, 0x11], [0xb8, 0x7b, 0xdf, 0xb5]]
     state = AESEncrypt.mix_cols(before2)
-    state = AESEncrypt.inv_mix_cols(state)
+    state = aesdecrypt.inv_mix_cols(state)
     tools.compare_2d(state, before2, 2)
     tools.debug_print_arr_2dhex(state)
     print()
 
     before3 = [[0x52, 0x85, 0xe3, 0xf6], [0xa4, 0x11, 0xcf, 0x50], [0xc8, 0x6a, 0x2f, 0x5e], [0x94, 0x28, 0xd7, 0x07]]
     state = AESEncrypt.mix_cols(before3)
-    state = AESEncrypt.inv_mix_cols(state)
+    state = aesdecrypt.inv_mix_cols(state)
     tools.compare_2d(state, before3, 3)
     tools.debug_print_arr_2dhex(state)
     print()
 
     before4 = [[0xe1, 0xe8, 0x35, 0x97], [0xfb, 0xc8, 0x6c, 0x4f], [0x96, 0xae, 0xd2, 0xfb], [0x7c, 0x9b, 0xba, 0x53]]
     state = AESEncrypt.mix_cols(before4)
-    state = AESEncrypt.inv_mix_cols(state)
+    state = aesdecrypt.inv_mix_cols(state)
     tools.compare_2d(state, before4, 4)
     tools.debug_print_arr_2dhex(state)
     print()
 
     before5 = [[0xa1, 0x78, 0x10, 0x4c], [0x4f, 0xe8, 0xd5, 0x63], [0x3d, 0x03, 0xa8, 0x29], [0xfe, 0xfc, 0xdf, 0x23]]
     state = AESEncrypt.mix_cols(before5)
-    state = AESEncrypt.inv_mix_cols(state)
+    state = aesdecrypt.inv_mix_cols(state)
     tools.compare_2d(state, before5, 5)
     tools.debug_print_arr_2dhex(state)
     print()
 
     print(f'[END] Inv Mix Columns Test:\r\n')
+
+
+if __name__ == '__main__':
+    print("---- AES Test Entry ----\r\n")
+
+    mix_cols_test()
+    inv_mix_cols_test()
+    sub_bytes_test()
+    key_expansion_test()
+    inv_shift_rows_test()
+
+
