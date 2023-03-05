@@ -65,6 +65,127 @@ def mix_cols(state):
 
     return temp
 
+def inv_mix_cols(state):
+    temp = [[0x00, 0x00, 0x00, 0x00],
+            [0x00, 0x00, 0x00, 0x00],
+            [0x00, 0x00, 0x00, 0x00],
+            [0x00, 0x00, 0x00, 0x00]]
+
+    for i, row in enumerate(temp):
+        for j, col in enumerate(row):
+            curr_col = [state[0][j], state[1][j], state[2][j], state[3][j]]
+            temp[i][j] = inv_mix_columns_transform(i, curr_col)
+
+    return temp
+
+def inv_mix_columns_transform(I_row, S_Col):
+    retval = 0x00
+    arr = [0,0,0,0]
+
+    for i in range(len(inv_mix_col_matrix[I_row])):
+        element = inv_mix_col_matrix[I_row][i]
+        temp = 0x00
+
+        #decimal value of 9: ((((x * 2) * 2) * 2) + x)
+        if element == 0x09:
+            #(x * 2)
+            temp = S_Col[i] & 0xFF
+            arr[i] = (S_Col[i] << 1)
+            if temp >= 0x80: arr[i] ^= 0x1B
+
+            #((x * 2) * 2)
+            temp = arr[i] & 0xFF
+            arr[i] = (arr[i] << 1)
+            if temp >= 0x80: arr[i] ^= 0x1B
+
+            #(((x * 2) * 2) * 2)
+            temp = arr[i] & 0xFF
+            arr[i] = (arr[i] << 1)
+            if temp >= 0x80: arr[i] ^= 0x1B
+
+            #((((x * 2) * 2) * 2) + x)
+            arr[i] ^= S_Col[i]
+
+            arr[i] = arr[i] & 0xFF
+
+        # decimal value of 11: (((((x * 2) * 2) + x) * 2) + x)
+        elif element == 0x0B:
+            #(x * 2)
+            temp = S_Col[i]
+            arr[i] = (S_Col[i] << 1)
+            if temp >= 0x80: arr[i] ^= 0x1B
+
+            #((x * 2) * 2)
+            temp = arr[i] & 0xFF
+            arr[i] = (arr[i] << 1)
+            if temp >= 0x80: arr[i] ^= 0x1B
+
+            #(((x * 2) * 2) + x)
+            arr[i] ^= S_Col[i]
+
+            #((((x * 2) * 2) + x) * 2)
+            temp = arr[i] & 0xFF
+            arr[i] = (arr[i] << 1)
+            if temp >= 0x80: arr[i] ^= 0x1B
+
+            #(((((x * 2) * 2) + x) * 2) + x)
+            arr[i] ^= S_Col[i]
+
+            arr[i] = arr[i] & 0xFF
+
+        # decimal value of 13: (((((x × 2) + x) × 2) × 2) + x)
+        elif element == 0x0D:
+            #(x * 2)
+            temp = S_Col[i]
+            arr[i] = (S_Col[i] << 1)
+            if temp >= 0x80: arr[i] ^= 0x1B
+
+            #(((x * 2) + x)
+            arr[i] ^= S_Col[i]
+
+            #((((x * 2) + x) * 2)
+            temp = arr[i] & 0xFF
+            arr[i] = (arr[i] << 1)
+            if temp >= 0x80: arr[i] ^= 0x1B
+
+            #(((((x * 2) + x) * 2) * 2)
+            temp = arr[i] & 0xFF
+            arr[i] = (arr[i] << 1)
+            if temp >= 0x80: arr[i] ^= 0x1B
+
+            #(((((x * 2) + x) * 2) * 2) + x)
+            arr[i] ^= S_Col[i]
+
+            arr[i] = arr[i] & 0xFF
+
+        # decimal value of 14: (((((x × 2) + x) × 2) + x) * 2)
+        elif element == 0x0E:
+            #(x × 2)
+            arr[i] ^= (S_Col[i] << 1)
+            if (S_Col[i] & 0xFF) >= 0x80: arr[i] ^= 0x1B
+
+            #((x × 2) + x)
+            arr[i] ^= S_Col[i]
+
+            #(((x × 2) + x) × 2)
+            temp = arr[i] & 0xFF
+            arr[i] = (arr[i] << 1)
+            if temp >= 0x80: arr[i] ^= 0x1B
+
+            #((((x × 2) + x) × 2) + x)
+            arr[i] ^= S_Col[i]
+
+            #(((((x × 2) + x) × 2) + x) * 2)
+            temp = arr[i] & 0xFF
+            arr[i] = (arr[i] << 1)
+            if temp >= 0x80: arr[i] ^= 0x1B
+
+            arr[i] = arr[i] & 0xFF
+
+    retval = arr[0] ^ arr[1] ^ arr[2] ^ arr[3]
+
+    return retval & 0xFF
+
 def mix_columns_transform(I_row, S_Col):
     temp = 0x00
 
@@ -86,6 +207,27 @@ def mix_columns_transform(I_row, S_Col):
             temp ^= S_Col[i]
 
     return temp & 0xFF
+
+def inv_mix_cols_test():
+    before0 = [[0xd4, 0xe0, 0xb8, 0x1e], [0xbf, 0xb4, 0x41, 0x27], [0x5d, 0x52, 0x11, 0x98], [0x30, 0xae, 0xf1, 0xe5]]
+    KAT0 = [[0x04, 0xe0, 0x48, 0x28], [0x66, 0xcb, 0xf8, 0x06], [0x81, 0x19, 0xd3, 0x26], [0xe5, 0x9a, 0x7a, 0x4c]]
+    #TEST = [[0x47, 0xe0, 0x48, 0x28], [0x37, 0xcb, 0xf8, 0x06], [0x94, 0x19, 0xd3, 0x26], [0xED, 0x9a, 0x7a, 0x4c]]
+
+    print(f'[START] Inv Columns Test:\r\n')
+    print(f'before0 pre array')
+    tools.debug_print_arr_2dhex(before0)
+
+    print(f'Performed mix cols')
+    state = mix_cols(before0)
+    tools.debug_print_arr_2dhex(state)
+
+    print(f'KAT for mix cols')
+    tools.debug_print_arr_2dhex(KAT0)
+
+    print(f'before0 inv mix cols')
+    state = inv_mix_cols(KAT0)
+    tools.debug_print_arr_2dhex(state)
+
 
 
 def mix_cols_test():
@@ -250,22 +392,18 @@ def shift_rows(state):
         state[i][2] = int(converter[2])
         state[i][3] = int(converter[3])
 
-if __name__ == '__main__':
-    print("---- AES Encrypt Python Entry ----\r\n")
-
-    #key_expansion_test()
-    #mix_cols_test()
-    #sub_bytes_test()
+def test_enc():
     #key = [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c]
     key = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f] #Test vector FIPS 197
     #state = [[0x32, 0x88, 0x31, 0xe0], [0x43, 0x5a, 0x31, 0x37], [0xf6, 0x30, 0x98, 0x07], [0xa8, 0x8d, 0xa2, 0x34]]
     state = [0x00, 0x44, 0x88, 0xcc], [0x11, 0x55, 0x99, 0xdd], [0x22, 0x66, 0xaa, 0xee], [0x33, 0x77, 0xbb, 0xff] #Test vector FIPS197
+
     aes_keys = key_expansion(key)
 
     round_key = extract_key(aes_keys[0])
     state = tools.xor_2d(state, round_key)
 
-    for curr_round in range(1,11,1):
+    for curr_round in range(1, 11, 1):
 
         print(f'[Round {curr_round}]: Start of Round')
         tools.debug_print_arr_2dhex(state)
@@ -295,6 +433,22 @@ if __name__ == '__main__':
 
     print(f'AES Complete')
     tools.debug_print_arr_2dhex(state)
+
+if __name__ == '__main__':
+    print("---- AES Encrypt Python Entry ----\r\n")
+
+    #key_expansion_test()
+    #mix_cols_test()
+    #sub_bytes_test()
+
+    #test_enc()
+    inv_mix_cols_test()
+
+
+
+
+
+
 
 
 
