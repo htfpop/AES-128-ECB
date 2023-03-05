@@ -45,6 +45,11 @@ def debug_print_arr_ascii(hex_array):
         print(f'{hex_array[x]:c}', end=' ')
     print()
 
+def debug_print_plaintext_ascii(input):
+    for x in range(len(input)):
+        print(f'{input[x]:c}', end='')
+    print()
+
 """
 Not used
 """
