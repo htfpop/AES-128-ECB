@@ -470,30 +470,30 @@ def test_enc():
 
     for curr_round in range(1, 11, 1):
 
-        print(f'[Round {curr_round}]: Start of Round')
-        tools.debug_print_arr_2dhex(state)
+        print(f'[ENCRYPT]: round{curr_round}: Start of Round')
+        tools.debug_print_arr_2dhex_1line(state)
         print()
 
-        print(f'[Round {curr_round}]: After SubBytes')
+        print(f'[ENCRYPT]: round{curr_round}: After SubBytes')
         s_box_sub(state)
-        tools.debug_print_arr_2dhex(state)
+        tools.debug_print_arr_2dhex_1line(state)
         print()
 
-        print(f'[Round {curr_round}]: After ShiftRows')
+        print(f'[ENCRYPT]: round{curr_round}: After ShiftRows')
         shift_rows(state)
-        tools.debug_print_arr_2dhex(state)
+        tools.debug_print_arr_2dhex_1line(state)
         print()
 
         if curr_round != 10:
-            print(f'[Round {curr_round}]: After MixColumns')
+            print(f'[ENCRYPT]: round{curr_round}: After MixColumns')
             state = mix_cols(state)
-            tools.debug_print_arr_2dhex(state)
+            tools.debug_print_arr_2dhex_1line(state)
             print()
 
-        print(f'[Round {curr_round}]: Round key Value')
+        print(f'[ENCRYPT]: round{curr_round}: Round key Value')
         round_key = extract_key(aes_keys[curr_round])
         state = tools.xor_2d(state, round_key)
-        tools.debug_print_arr_2dhex(round_key)
+        tools.debug_print_arr_2dhex_1line(round_key)
         print()
 
     print(f'AES Encrypt Complete')
