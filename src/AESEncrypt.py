@@ -516,9 +516,9 @@ if __name__ == '__main__':
     #mix_cols_test()
     #sub_bytes_test()
 
-    #test_enc()
+    test_enc()
     #inv_mix_cols_test()
-    inv_shift_rows_test()
+    #inv_shift_rows_test()
 
 
 
