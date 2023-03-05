@@ -1,5 +1,6 @@
 import tools
 import AESEncrypt
+import aesdecrypt
 
 
 
@@ -67,12 +68,12 @@ def test_aes():
         print()
 
         print(f'[DECRYPT] round{10 - inv_curr_round}: is_row')
-        AESEncrypt.shift_rows_inv(state)
+        aesdecrypt.shift_rows_inv(state)
         tools.debug_print_arr_2dhex_1line(state)
         print()
 
         print(f'[DECRYPT] round{10 - inv_curr_round}: is_box')
-        AESEncrypt.s_box_inv_sub(state)
+        aesdecrypt.s_box_inv_sub(state)
         tools.debug_print_arr_2dhex_1line(state)
         print()
 
@@ -89,7 +90,7 @@ def test_aes():
 
         if inv_curr_round != 0:
             print(f'[DECRYPT] round{10 - inv_curr_round}: i_mix_cols')
-            state = AESEncrypt.inv_mix_cols(state)
+            state = aesdecrypt.inv_mix_cols(state)
             tools.debug_print_arr_2dhex_1line(state)
             print()
 
