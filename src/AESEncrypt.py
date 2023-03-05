@@ -236,6 +236,17 @@ def extract_key(key):
 
     return byte_arr
 
+
+def shift_rows(state):
+
+    for i in range(1,4,1):
+        word = tools.rot_word_L(state[i][0] << 24 | state[i][1] << 16 | state[i][2] << 8 | state[i][3], i)
+        converter = word.to_bytes(4, byteorder='big', signed=False)
+        state[i][0] = int(converter[0])
+        state[i][1] = int(converter[1])
+        state[i][2] = int(converter[2])
+        state[i][3] = int(converter[3])
+
 if __name__ == '__main__':
     print("---- AES Encrypt Python Entry ----\r\n")
 
@@ -243,10 +254,50 @@ if __name__ == '__main__':
     #mix_cols_test()
     #sub_bytes_test()
     key = [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c]
-    state = [[0x32, 0x43, 0xf6, 0xa8], [0x88, 0x5a, 0x30, 0x8d], [0x31, 0x31, 0x98, 0xa2], [0xe0, 0x37, 0x07, 0x34]]
+    state = [[0x32, 0x88, 0x31, 0xe0], [0x43, 0x5a, 0x31, 0x37], [0xf6, 0x30, 0x98, 0x07], [0xa8, 0x8d, 0xa2, 0x34]]
     aes_keys = key_expansion(key)
 
     round_key = extract_key(aes_keys[0])
+    state = tools.xor_2d(state, round_key)
+
+    for curr_round in range(1,11,1):
+
+        print(f'[Round {curr_round}]: Start of Round')
+        tools.debug_print_arr_2dhex(state)
+        print()
+
+        print(f'[Round {curr_round}]: After SubBytes')
+        s_box_sub(state)
+        tools.debug_print_arr_2dhex(state)
+        print()
+
+        print(f'[Round {curr_round}]: After ShiftRows')
+        shift_rows(state)
+        tools.debug_print_arr_2dhex(state)
+        print()
+
+        if curr_round != 10:
+            print(f'[Round {curr_round}]: After MixColumns')
+            state = mix_cols(state)
+            tools.debug_print_arr_2dhex(state)
+            print()
+
+        print(f'[Round {curr_round}]: Round key Value')
+        round_key = extract_key(aes_keys[curr_round])
+        state = tools.xor_2d(state, round_key)
+        tools.debug_print_arr_2dhex(round_key)
+        print()
+
+    print(f'AES Complete')
+    tools.debug_print_arr_2dhex(state)
+
+
+
+
+
+
+
+
 
 
 
