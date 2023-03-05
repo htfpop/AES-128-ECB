@@ -2,14 +2,19 @@
 PT_BLOCK_SIZE = 16
 AES_PT_PADDING = 0x00
 
-"""
+
 def debug_print_arr_hex(hex_array):
     for x in range(len(hex_array)):
         if x % 4 == 0 and x != 0:
             print("\r\n")
         print(f'0x{hex_array[x]:02x}', end=' ')
     print()
-"""
+
+def debug_print_arr_hex_1line(hex_array):
+    for x in range(len(hex_array)):
+        print(format(hex_array[x], '02x'), end=' ')
+    print()
+
 
 """
 Used only in AES Encrypt Test 

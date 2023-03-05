@@ -155,8 +155,8 @@ def extract_key(key):
 
     return byte_arr
 
-if __name__ == '__main__':
-    print("---- AES Encrypt Python Entry ----\r\n")
+def aes_main(state, key):
+    print('hello')
 
 
 
