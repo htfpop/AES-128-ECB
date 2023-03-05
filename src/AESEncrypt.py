@@ -1,5 +1,4 @@
 import tools
-import copy
 
 mix_col_matrix = [ [0x02, 0x03, 0x01, 0x01],
                    [0x01, 0x02, 0x03, 0x01],
@@ -123,6 +122,7 @@ def inv_mix_columns_transform(I_row, S_Col):
             #((((x * 2) * 2) * 2) + x)
             arr[i] ^= S_Col[i]
 
+            #Clear MS bits and only keep a byte
             arr[i] = arr[i] & 0xFF
 
         # decimal value of 11: (((((x * 2) * 2) + x) * 2) + x)
@@ -148,6 +148,7 @@ def inv_mix_columns_transform(I_row, S_Col):
             #(((((x * 2) * 2) + x) * 2) + x)
             arr[i] ^= S_Col[i]
 
+            # Clear MS bits and only keep a byte
             arr[i] = arr[i] & 0xFF
 
         # decimal value of 13: (((((x × 2) + x) × 2) × 2) + x)
@@ -173,6 +174,7 @@ def inv_mix_columns_transform(I_row, S_Col):
             #(((((x * 2) + x) * 2) * 2) + x)
             arr[i] ^= S_Col[i]
 
+            # Clear MS bits and only keep a byte
             arr[i] = arr[i] & 0xFF
 
         # decimal value of 14: (((((x × 2) + x) × 2) + x) * 2)
@@ -197,8 +199,10 @@ def inv_mix_columns_transform(I_row, S_Col):
             arr[i] = (arr[i] << 1)
             if temp >= 0x80: arr[i] ^= 0x1B
 
+            # Clear MS bits and only keep a byte
             arr[i] = arr[i] & 0xFF
 
+    #Add 1x4 * 4x1 into 1x1 and only keep a byte of data
     return (arr[0] ^ arr[1] ^ arr[2] ^ arr[3]) & 0xFF
 
 def mix_columns_transform(I_row, S_Col):
@@ -486,7 +490,7 @@ def test_enc():
     tools.debug_print_arr_2dhex(state)
 
 def inv_shift_rows_test():
-    KAT = [0x00, 0x44, 0x88, 0xcc], [0x11, 0x55, 0x99, 0xdd], [0x22, 0x66, 0xaa, 0xee], [0x33, 0x77, 0xbb, 0xff]  # Test vector FIPS197
+    KAT = [0x00, 0x44, 0x88, 0xcc], [0x11, 0x55, 0x99, 0xdd], [0x22, 0x66, 0xaa, 0xee], [0x33, 0x77, 0xbb, 0xff]  #Test vector FIPS197
     state = [0x00, 0x44, 0x88, 0xcc], [0x11, 0x55, 0x99, 0xdd], [0x22, 0x66, 0xaa, 0xee], [0x33, 0x77, 0xbb, 0xff] #Test vector FIPS197
 
 
