@@ -223,12 +223,33 @@ def key_expansion_test():
     tools.debug_print_arr_2dhex(key)
     print(f'[END] Key Expansion Test')
 
+def extract_key(key):
+
+    byte_arr = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
+
+    for i in range(4):
+        converter = key[i].to_bytes(4, byteorder='big', signed=False)
+        byte_arr[0][i] = int(converter[0])
+        byte_arr[1][i] = int(converter[1])
+        byte_arr[2][i] = int(converter[2])
+        byte_arr[3][i] = int(converter[3])
+
+    return byte_arr
+
 if __name__ == '__main__':
     print("---- AES Encrypt Python Entry ----\r\n")
 
-    key_expansion_test()
-    mix_cols_test()
-    sub_bytes_test()
+    #key_expansion_test()
+    #mix_cols_test()
+    #sub_bytes_test()
+    key = [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c]
+    state = [[0x32, 0x43, 0xf6, 0xa8], [0x88, 0x5a, 0x30, 0x8d], [0x31, 0x31, 0x98, 0xa2], [0xe0, 0x37, 0x07, 0x34]]
+    aes_keys = key_expansion(key)
+
+    round_key = extract_key(aes_keys[0])
+
+
+
 
 
 
