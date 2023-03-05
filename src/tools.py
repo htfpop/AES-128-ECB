@@ -20,6 +20,13 @@ def debug_print_arr_2dhex(hex_array):
             print(f'{col:#04x}', end=' ')
         print()
 
+def debug_print_arr_2dhex_1line(hex_array):
+    for j in range(len(hex_array[0])):
+        column = [row[j] for row in hex_array]
+        for elem in column:
+            print(format(elem, '02x'), end='')
+    print()
+
 def debug_print_arr_ascii(hex_array):
     for x in range(len(hex_array)):
         if x % 8 == 0 and x != 0:

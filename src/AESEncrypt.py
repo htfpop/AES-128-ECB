@@ -57,6 +57,16 @@ def s_box_sub(state):
 
     return state
 
+def s_box_inv_sub(state):
+
+    for i, row in enumerate(state):
+        for j, col in enumerate(row):
+            ms_nibble = (state[i][j] & 0xF0) >> 4
+            ls_nibble = (state[i][j] & 0x0F)
+            state[i][j] = s_box_inv[ms_nibble][ls_nibble]
+
+    return state
+
 def sub_word(input_word):
     byte_arr = input_word.to_bytes(4, 'big')
     ret_word = [0,0,0,0]
@@ -486,8 +496,71 @@ def test_enc():
         tools.debug_print_arr_2dhex(round_key)
         print()
 
-    print(f'AES Complete')
+    print(f'AES Encrypt Complete')
     tools.debug_print_arr_2dhex(state)
+    print()
+
+    print(f'[START] AES Decrypt')
+
+    round_key = extract_key(aes_keys[10])
+
+    print(f'[DECRYPT] round{0}: iinput')
+    tools.debug_print_arr_2dhex_1line(state)
+    print()
+
+    print(f'[DECRYPT] round{0}: ik_sch')
+    tools.debug_print_arr_2dhex_1line(round_key)
+    print()
+
+    state = tools.xor_2d(state, round_key)
+
+    for inv_curr_round in range(9,1,-1):
+
+        print(f'[DECRYPT] round{10 - inv_curr_round}: istart')
+        tools.debug_print_arr_2dhex_1line(state)
+        print()
+
+        print(f'[DECRYPT] round{10 - inv_curr_round}: is_row')
+        shift_rows_inv(state)
+        tools.debug_print_arr_2dhex_1line(state)
+        print()
+
+        print(f'[DECRYPT] round{10 - inv_curr_round}: is_box')
+        s_box_inv_sub(state)
+        tools.debug_print_arr_2dhex_1line(state)
+        print()
+
+        round_key = extract_key(aes_keys[inv_curr_round])
+
+        print(f'[DECRYPT] round{10 - inv_curr_round}: ik_sch')
+        tools.debug_print_arr_2dhex_1line(round_key)
+        print()
+
+        print(f'[DECRYPT] round{10 - inv_curr_round}: ik_add')
+        state = tools.xor_2d(state, round_key)
+        tools.debug_print_arr_2dhex_1line(state)
+        print()
+
+        if inv_curr_round != 1:
+            print(f'[DECRYPT] round{10 - inv_curr_round}: i_mix_cols')
+            state = inv_mix_cols(state)
+            tools.debug_print_arr_2dhex_1line(state)
+            print()
+
+    print(f'AES Decrypt Complete')
+    tools.debug_print_arr_2dhex(state)
+    print()
+"""
+    print(f'[Round 10]: Round key Value')
+    round_key = extract_key(aes_keys[0])
+    state = tools.xor_2d(state, round_key)
+    tools.debug_print_arr_2dhex_1line(round_key)
+    print()
+"""
+
+
+
+
 
 def inv_shift_rows_test():
     KAT = [0x00, 0x44, 0x88, 0xcc], [0x11, 0x55, 0x99, 0xdd], [0x22, 0x66, 0xaa, 0xee], [0x33, 0x77, 0xbb, 0xff]  #Test vector FIPS197
