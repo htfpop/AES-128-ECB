@@ -114,7 +114,7 @@ def rot_word_L(word, amt):
         return ((word << 24) & 0xFF000000) | ((word >> 8) & 0x00FFFFFF)
 
 def rot_word_R(word, amt):
-    print(f'pre-value: 0x{word:02x}\r\n')
+    #print(f'pre-value: 0x{word:02x}\r\n')
     if amt == 1:
         return ((word >> 8) & 0x00FFFFFF) | ((word << 24) & 0xFF000000)
     elif amt == 2:
