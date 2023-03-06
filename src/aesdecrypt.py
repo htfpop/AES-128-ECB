@@ -241,6 +241,13 @@ def s_box_inv_sub(state):
 
     return state
 
+
+"""
+Function :   sub_word
+Parameters : (x1) 32-bit word
+Output :     (x1) 32-bit word that has been substituted by S-Box
+Description: Perform S-Box substitution on (x1) 32-bit word
+"""
 def sub_word(input_word):
     byte_arr = input_word.to_bytes(4, 'big')
     ret_word = [0,0,0,0]
@@ -251,14 +258,18 @@ def sub_word(input_word):
 
     return int.from_bytes(ret_word, 'big')
 def key_expansion(aes_key):
+    """Since aes_key is a byte array, manually create 32-bit words"""
     w = [aes_key[0] << 24 | aes_key[1] << 16 | aes_key[2] << 8 | aes_key[3],
          aes_key[4] << 24 | aes_key[5] << 16 | aes_key[6] << 8 | aes_key[7],
          aes_key[8] << 24 | aes_key[9] << 16 | aes_key[10] << 8 | aes_key[11],
          aes_key[12] << 24 | aes_key[13] << 16 | aes_key[14] << 8 | aes_key[15]]
     temp = w[3]
     r_const_ptr = 0
+
+    """Iterate through all keys and perform necessary rotations and XOR'ing from previous bytes"""
     for x in range(4, 44, 1):
 
+        """If a words has been made - rotate, substitute, and use round constant for XOR"""
         if x % 4 == 0:
             temp = rot_word_L(temp, 1)
             #print(f'[Debug] After RotWord(): 0x{temp:02x}')
@@ -288,14 +299,23 @@ def key_expansion(aes_key):
         [0, 0, 0, 0]
     ]
 
+    """
+    Iterate through the key_out 2D array to store all 11 keys in this array, iterate 1 word at a time
+    Each row represents the round key for AES enc/dec
+    """
     for i in range(len(key_out)):
         for j in range(len(key_out[0])):
             key_out[i][j] = w[i * len(key_out[0]) + j]
 
     return key_out
 
+"""
+Function :   extract_key
+Parameters : Key List
+Output :     Returns key from 1D space into 2D space 
+Description: Turn 1D byte array into 2D for easy XOR operations
+"""
 def extract_key(key):
-
     byte_arr = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
 
     for i in range(4):
@@ -307,6 +327,12 @@ def extract_key(key):
 
     return byte_arr
 
+"""
+Function :   populate_state
+Parameters : empty state array, plaintext, current encryption round
+Output :     Returns state array with populated plaintext
+Description: Turn 1D byte array into 2D state array using respective indexing
+"""
 def populate_state(state, pt, curr_round):
     for col in range(len(state[0])):
         state[0][col] = pt[(col * 4) + (curr_round * 16)]
@@ -314,19 +340,38 @@ def populate_state(state, pt, curr_round):
         state[2][col] = pt[(col * 4 + 2) + (curr_round * 16)]
         state[3][col] = pt[(col * 4 + 3) + (curr_round * 16)]
 
+"""
+Function :   state_store
+Parameters : encrypted state array, ciphertext byte array
+Output :     Returns ciphertext byte array with 16 extra bytes
+Description: Used to correctly store bytes in order from AES state array
+             Loop through all column elements and store in 1d array using list comprehension
+Website:     https://www.w3schools.com/python/python_lists_comprehension.asp
+"""
 def state_store(state, ct):
     for j in range(len(state[0])):
         column = [row[j] for row in state]
         for elem in column:
             ct.append(elem)
+"""
+Function :   aes_decrypt
+Parameters : 1D ciphertext Byte array, 1D key array (16 bytes)
+Output :     1D plaintext array
+Description: AES-128 Decryption Algorithm
+"""
 def aes_decrypt(ct, key):
     plaintext = bytearray([])
-    key_schedule = key_expansion(key)
     num_blocks = int(len(ct) / 16)
     curr_round = 0
 
+    """generate key schedule for all 10 rounds"""
+    key_schedule = key_expansion(key)
+
+    """for-loop to iterate over all 16-byte plaintext blocks"""
     for i in range(num_blocks):
         state = [[0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]]
+
+        """This function will turn the 1D plaintext into multiple 2D state arrays"""
         populate_state(state, ct, curr_round)
 
         round_key = extract_key(key_schedule[10])
@@ -341,8 +386,8 @@ def aes_decrypt(ct, key):
 
         state = xor_2d(state, round_key)
 
+        """Perform necessary shifting, mixing, and substitution on 2D state array"""
         for inv_curr_round in range(9, -1, -1):
-
             #print(f'[DECRYPT] round{10 - inv_curr_round}: istart')
             #tools.debug_print_arr_2dhex_1line(state)
             #print()
@@ -368,6 +413,7 @@ def aes_decrypt(ct, key):
             #tools.debug_print_arr_2dhex_1line(state)
             #print()
 
+            """Mix Columns skipped for last round"""
             if inv_curr_round != 0:
                 #print(f'[DECRYPT] round{10 - inv_curr_round}: i_mix_cols')
                 state = inv_mix_cols(state)
@@ -378,15 +424,44 @@ def aes_decrypt(ct, key):
         #tools.debug_print_arr_2dhex_1line(state)
         #print()
 
+        """Store 16 extra bytes into ciphertext"""
         state_store(state, plaintext)
+
+        """Update current cipher round for indexing"""
         curr_round += 1
 
     return plaintext
 
+"""
+Function :   iso_iec_7816_4_unpad
+Parameters : 1D padded plaintext array
+Output :     1D unpadded plaintext array
+Description: Undo padding scheme from aestest.iso_iec_7816_4_pad()
+             Iterate from the back of the byte array, mark 0x80 instance, then return spliced array
+"""
+def iso_iec_7816_4_unpad(pt):
+    ret_pt = bytearray(pt)
+    found = 0
+    for i in range(len(ret_pt) -1, 0, -1):
+        if ret_pt[i] == 0x80:
+            found = i
+            break
 
+    ret_pt = pt[:found]
+
+    return ret_pt
+
+"""
+Function :   main
+Parameters : 1D ciphertext Byte array, 1D key array (16 bytes)
+Output :     None
+Description: AES Decrypt driver - must be called from aesencrypt.py
+"""
 def aes_dec_main(ct, key):
 
     plaintext = aes_decrypt(ct, key)
 
-    print('[aesdecrypt.py] Plaintext:')
-    debug_print_plaintext_ascii(plaintext)
+    unpaddedPT = iso_iec_7816_4_unpad(plaintext)
+
+    print('[aesdecrypt.py] Plaintext (ASCII):')
+    debug_print_plaintext_ascii(unpaddedPT)

@@ -70,6 +70,12 @@ def rot_word_L(word, amt):
     elif amt == 3:
         return ((word << 24) & 0xFF000000) | ((word >> 8) & 0x00FFFFFF)
 
+"""
+Function :   s_box_sub
+Parameters : state array
+Output :     updated state array
+Description: Perform S-Box substitution on the entire 16-byte state array
+"""
 def s_box_sub(state):
     for i, row in enumerate(state):
         for j, col in enumerate(row):
@@ -80,7 +86,12 @@ def s_box_sub(state):
     return state
 
 
-
+"""
+Function :   sub_word
+Parameters : (x1) 32-bit word
+Output :     (x1) 32-bit word that has been substituted by S-Box
+Description: Perform S-Box substitution on (x1) 32-bit word
+"""
 def sub_word(input_word):
     byte_arr = input_word.to_bytes(4, 'big')
     ret_word = [0,0,0,0]
@@ -91,8 +102,13 @@ def sub_word(input_word):
 
     return int.from_bytes(ret_word, 'big')
 
+"""
+Function :   shift_rows
+Parameters : state array
+Output :     update state array
+Description: shift all rows by set amount
+"""
 def shift_rows(state):
-
     for i in range(1,4,1):
         word = rot_word_L(state[i][0] << 24 | state[i][1] << 16 | state[i][2] << 8 | state[i][3], i)
         converter = word.to_bytes(4, byteorder='big', signed=False)
@@ -102,7 +118,12 @@ def shift_rows(state):
         state[i][3] = int(converter[3])
 
 
-
+"""
+Function :   mix_cols
+Parameters : state array
+Output :     updated state array
+Description: Mix Columns driver
+"""
 def mix_cols(state):
     temp = [[0x00, 0x00, 0x00, 0x00],
             [0x00, 0x00, 0x00, 0x00],
@@ -116,12 +137,23 @@ def mix_cols(state):
 
     return temp
 
+"""
+Function :   mix_columns_transform
+Parameters : Current index row, state column
+Output :     1 Byte
+Description: Performs Mix Columns using polynomials over GF(2^8)
+"""
 def mix_columns_transform(I_row, S_Col):
     temp = 0x00
 
+    """Iterates over current Mix Col row and state array column to perform matrix multiplication"""
     for i in range(len(mix_col_matrix[I_row])):
         element = mix_col_matrix[I_row][i]
 
+        """
+        Determine if you are multiplying either by 0x02, 0x03, or 0x01
+        If MS bit is set before multiplying temp by 2, XOR temp using polynomial x^4 + x^3 + x^2 + 1 (0x1B)
+        """
         if element == 0x02:
             temp ^= (S_Col[i] << 1)
             if S_Col[i] >= 0x80:
@@ -140,16 +172,25 @@ def mix_columns_transform(I_row, S_Col):
 
 
 
-
+"""
+Function :   key_expansion
+Parameters : AES Secret Key
+Output :     2D Array with all keys used for AES key schedule
+Description: Perform complex operations to expand (x1) 16-byte key into (x11) 16-byte keys
+"""
 def key_expansion(aes_key):
+    """Since aes_key is a byte array, manually create 32-bit words"""
     w = [aes_key[0] << 24 | aes_key[1] << 16 | aes_key[2] << 8 | aes_key[3],
          aes_key[4] << 24 | aes_key[5] << 16 | aes_key[6] << 8 | aes_key[7],
          aes_key[8] << 24 | aes_key[9] << 16 | aes_key[10] << 8 | aes_key[11],
          aes_key[12] << 24 | aes_key[13] << 16 | aes_key[14] << 8 | aes_key[15]]
     temp = w[3]
     r_const_ptr = 0
+
+    """Iterate through all keys and perform necessary rotations and XOR'ing from previous bytes"""
     for x in range(4, 44, 1):
 
+        """If a words has been made - rotate, substitute, and use round constant for XOR"""
         if x % 4 == 0:
             temp = rot_word_L(temp, 1)
             #print(f'[Debug] After RotWord(): 0x{temp:02x}')
@@ -179,14 +220,23 @@ def key_expansion(aes_key):
         [0, 0, 0, 0]
     ]
 
+    """
+    Iterate through the key_out 2D array to store all 11 keys in this array, iterate 1 word at a time
+    Each row represents the round key for AES enc/dec
+    """
     for i in range(len(key_out)):
         for j in range(len(key_out[0])):
             key_out[i][j] = w[i * len(key_out[0]) + j]
 
     return key_out
 
+"""
+Function :   extract_key
+Parameters : Key List
+Output :     Returns key from 1D space into 2D space 
+Description: Turn 1D byte array into 2D for easy XOR operations
+"""
 def extract_key(key):
-
     byte_arr = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
 
     for i in range(4):
@@ -198,6 +248,12 @@ def extract_key(key):
 
     return byte_arr
 
+"""
+Function :   populate_state
+Parameters : empty state array, plaintext, current encryption round
+Output :     Returns state array with populated plaintext
+Description: Turn 1D byte array into 2D state array using respective indexing
+"""
 def populate_state(state, pt, curr_round):
     for col in range(len(state[0])):
         state[0][col] = pt[(col * 4) + (curr_round * 16)]
@@ -206,8 +262,12 @@ def populate_state(state, pt, curr_round):
         state[3][col] = pt[(col * 4 + 3) + (curr_round * 16)]
 
 """
-Loop through all column elements and store in 1d array using list comprehension
-https://www.w3schools.com/python/python_lists_comprehension.asp
+Function :   state_store
+Parameters : encrypted state array, ciphertext byte array
+Output :     Returns ciphertext byte array with 16 extra bytes
+Description: Used to correctly store bytes in order from AES state array
+             Loop through all column elements and store in 1d array using list comprehension
+Website:     https://www.w3schools.com/python/python_lists_comprehension.asp
 """
 def state_store(state, ct):
     for j in range(len(state[0])):
@@ -215,18 +275,32 @@ def state_store(state, ct):
         for elem in column:
             ct.append(elem)
 
+"""
+Function :   aes_encrypt
+Parameters : 1D Plaintext Byte array, 1D key array (16 bytes)
+Output :     1D ciphertext array
+Description: AES-128 Encryption Algorithm
+"""
 def aes_encrypt(pt,key):
     ciphertext = bytearray([])
-    key_schedule = key_expansion(key)
     num_blocks = int(len(pt) / 16)
     curr_round = 0
 
+    """generate key schedule for all 10 rounds"""
+    key_schedule = key_expansion(key)
+
+    """for-loop to iterate over all 16-byte plaintext blocks"""
     for i in range(num_blocks):
         state = [[0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]]
+
+        """This function will turn the 1D plaintext into multiple 2D state arrays"""
         populate_state(state, pt, curr_round)
 
         round_key = extract_key(key_schedule[0])
+
         state = xor_2d(state, round_key)
+
+        """Perform necessary shifting, mixing, and substitution on 2D state array"""
         for aes_round in range(1, 11, 1):
             #print(f'[ENCRYPT]: round{aes_round}: Start of Round')
             #tools.debug_print_arr_2dhex_1line(state)
@@ -235,47 +309,57 @@ def aes_encrypt(pt,key):
             #print(f'[ENCRYPT]: round{aes_round}: After SubBytes')
             s_box_sub(state)
             #tools.debug_print_arr_2dhex_1line(state)
-           # print()
+            #print()
 
             #print(f'[ENCRYPT]: round{aes_round}: After ShiftRows')
             shift_rows(state)
             #tools.debug_print_arr_2dhex_1line(state)
-           # print()
+            #print()
 
+            """Mix Columns skipped for only round 10"""
             if aes_round != 10:
                 #print(f'[ENCRYPT]: round{aes_round}: After MixColumns')
                 state = mix_cols(state)
-               # tools.debug_print_arr_2dhex_1line(state)
-               # print()
+                #tools.debug_print_arr_2dhex_1line(state)
+                #print()
 
             #print(f'[ENCRYPT]: round{aes_round}: Round key Value')
             round_key = extract_key(key_schedule[aes_round])
+
             state = xor_2d(state, round_key)
             #tools.debug_print_arr_2dhex_1line(round_key)
-           # print()
+            #print()
 
         #print(f'AES Encrypt Complete')
         #tools.debug_print_arr_2dhex(state)
 
+        """Store 16 extra bytes into ciphertext"""
         state_store(state, ciphertext)
+
+        """Update current cipher round for indexing"""
         curr_round += 1
 
 
     return ciphertext
+
+"""
+Function :   main
+Parameters : 1D Plaintext Byte array, 1D key array (16 bytes)
+Output :     None
+Description: AES Encrypt driver - must be called from aestest.py
+Usage:       python aestest.py "<StringtoEncrypt>"
+
+"""
 def aes_enc_main(pt, key):
-    #testpt = [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]
-    #testpt = [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]
-    #testkey = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f]
 
-    #test1 = bytearray(testpt)
-    #test2 = bytearray(testkey)
-
+    #generate n-byte ciphertext
     ciphertext = aes_encrypt(pt, key)
+
     print('[aesencrypt.py] Ciphertext:')
     debug_print_arr_hex_1line(ciphertext)
     print()
 
-    # todo call aes decrypt
+    #Calling aesdecrypt.py to handle decryption
     aesdecrypt.aes_dec_main(ciphertext, key)
 
 
