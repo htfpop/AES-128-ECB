@@ -1,4 +1,3 @@
-import tools
 import aesdecrypt
 
 mix_col_matrix = [ [0x02, 0x03, 0x01, 0x01],
@@ -25,8 +24,51 @@ s_box = [[0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b
         [0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf],
         [0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16]]
 
+"""
+Function :   debug_print_arr_hex_1line
+Parameters : hex_array - 1D hexadecimal array
+Output :     None
+Description: Iterates through entire 1D array and prints to screen.
+             used in aes_enc_main and aestest.py main
+"""
+def debug_print_arr_hex_1line(hex_array):
+    for x in range(len(hex_array)):
+        print(format(hex_array[x], '#02x'), end=' ')
+    print()
+
+"""
+Function :   xor_2d
+Parameters : arr1 - 2D hexadecimal array
+             arr2 - 2D hexadecimal array
+Output :     arr1 - 2D hexadecimal array that has been XOR'ed by arr2
+Description: Iterates through every element of both 2D arrays and XOR's arr1[row][col] ^ arr2[row][col].
+             arr1 used as storage and returned back to caller. 
+             Used in key addition
+"""
+def xor_2d(arr1, arr2):
+    for i in range(len(arr1)):
+        for j in range(len(arr1[0])):
+            val = arr1[i][j] ^ arr2[i][j]
+            arr1[i][j] = val
+
+    return arr1
 
 
+"""
+Function :   rot_word_L
+Parameters : word - current 32 bit unsigned word
+             amt - requested rotate left amount
+Output :     32-bit unsigned word
+Description: Rotates a 32-bit word by requested amount using bit shifts, then returning new value back to caller
+             Needed for Key Expansion and Shift Rows
+"""
+def rot_word_L(word, amt):
+    if amt == 1:
+        return ((word << 8) & 0xFFFFFF00) | ((word >> 24) & 0x000000FF)
+    elif amt == 2:
+        return ((word << 16) & 0xFFFF0000) | ((word >> 16) & 0x0000FFFF)
+    elif amt == 3:
+        return ((word << 24) & 0xFF000000) | ((word >> 8) & 0x00FFFFFF)
 
 def s_box_sub(state):
     for i, row in enumerate(state):
@@ -52,7 +94,7 @@ def sub_word(input_word):
 def shift_rows(state):
 
     for i in range(1,4,1):
-        word = tools.rot_word_L(state[i][0] << 24 | state[i][1] << 16 | state[i][2] << 8 | state[i][3], i)
+        word = rot_word_L(state[i][0] << 24 | state[i][1] << 16 | state[i][2] << 8 | state[i][3], i)
         converter = word.to_bytes(4, byteorder='big', signed=False)
         state[i][0] = int(converter[0])
         state[i][1] = int(converter[1])
@@ -109,7 +151,7 @@ def key_expansion(aes_key):
     for x in range(4, 44, 1):
 
         if x % 4 == 0:
-            temp = tools.rot_word_L(temp, 1)
+            temp = rot_word_L(temp, 1)
             #print(f'[Debug] After RotWord(): 0x{temp:02x}')
             temp = sub_word(temp)
             #print(f'[Debug] After SubWord(): 0x{temp:02x}')
@@ -184,7 +226,7 @@ def aes_encrypt(pt,key):
         populate_state(state, pt, curr_round)
 
         round_key = extract_key(key_schedule[0])
-        state = tools.xor_2d(state, round_key)
+        state = xor_2d(state, round_key)
         for aes_round in range(1, 11, 1):
             #print(f'[ENCRYPT]: round{aes_round}: Start of Round')
             #tools.debug_print_arr_2dhex_1line(state)
@@ -208,7 +250,7 @@ def aes_encrypt(pt,key):
 
             #print(f'[ENCRYPT]: round{aes_round}: Round key Value')
             round_key = extract_key(key_schedule[aes_round])
-            state = tools.xor_2d(state, round_key)
+            state = xor_2d(state, round_key)
             #tools.debug_print_arr_2dhex_1line(round_key)
            # print()
 
@@ -221,20 +263,20 @@ def aes_encrypt(pt,key):
 
     return ciphertext
 def aes_enc_main(pt, key):
-    testpt = [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]
+    #testpt = [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]
     #testpt = [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]
-    testkey = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f]
+    #testkey = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f]
 
-    test1 = bytearray(testpt)
-    test2 = bytearray(testkey)
+    #test1 = bytearray(testpt)
+    #test2 = bytearray(testkey)
 
-    ciphertext = aes_encrypt(test1, test2)
+    ciphertext = aes_encrypt(pt, key)
     print('[aesencrypt.py] Ciphertext:')
-    tools.debug_print_arr_hex_1line(ciphertext)
+    debug_print_arr_hex_1line(ciphertext)
     print()
 
     # todo call aes decrypt
-    aesdecrypt.aes_dec_main(ciphertext, test2)
+    aesdecrypt.aes_dec_main(ciphertext, key)
 
 
 

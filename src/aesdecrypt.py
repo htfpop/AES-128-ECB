@@ -1,5 +1,3 @@
-import tools
-
 s_box_inv = [[0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb],
             [0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb],
             [0x54, 0x7b, 0x94, 0x32, 0xa6, 0xc2, 0x23, 0x3d, 0xee, 0x4c, 0x95, 0x0b, 0x42, 0xfa, 0xc3, 0x4e],
@@ -41,10 +39,71 @@ inv_mix_col_matrix = [ [0x0E, 0x0B, 0x0D, 0x09],
                        [0x0D, 0x09, 0x0E, 0x0B],
                        [0x0B, 0x0D, 0x09, 0x0E] ]
 
+"""
+Function :   debug_print_plaintext_ascii
+Parameters : input - array of hexadecimal 
+Output :     None
+Description: Iterates through entire array, converts hexadecimal to ASCII, then prints to screen
+             Used in aes_dec_main and aestest.py main
+"""
+def debug_print_plaintext_ascii(input):
+    for x in range(len(input)):
+        print(f'{input[x]:c}', end='')
+    print()
+
+"""
+Function :   xor_2d
+Parameters : arr1 - 2D hexadecimal array
+             arr2 - 2D hexadecimal array
+Output :     arr1 - 2D hexadecimal array that has been XOR'ed by arr2
+Description: Iterates through every element of both 2D arrays and XOR's arr1[row][col] ^ arr2[row][col].
+             arr1 used as storage and returned back to caller. 
+             Used in key addition
+"""
+def xor_2d(arr1, arr2):
+    for i in range(len(arr1)):
+        for j in range(len(arr1[0])):
+            val = arr1[i][j] ^ arr2[i][j]
+            arr1[i][j] = val
+
+    return arr1
+
+"""
+Function :   rot_word_R
+Parameters : word - current 32 bit unsigned word
+             amt - requested rotate left amount
+Output :     32-bit unsigned word
+Description: Rotates a 32-bit word by requested amount using bit shifts, then returning new value back to caller
+             Needed for inverse Shift rows
+"""
+def rot_word_R(word, amt):
+    if amt == 1:
+        return ((word >> 8) & 0x00FFFFFF) | ((word << 24) & 0xFF000000)
+    elif amt == 2:
+        return ((word >> 16) & 0x0000FFFF) | ((word << 16) & 0xFFFF0000)
+    elif amt == 3:
+        return ((word >> 24) & 0x000000FF) | ((word << 8) & 0xFFFFFF00)
+
+"""
+Function :   rot_word_L
+Parameters : word - current 32 bit unsigned word
+             amt - requested rotate left amount
+Output :     32-bit unsigned word
+Description: Rotates a 32-bit word by requested amount using bit shifts, then returning new value back to caller
+             Needed for Key Expansion and Shift Rows
+"""
+def rot_word_L(word, amt):
+    if amt == 1:
+        return ((word << 8) & 0xFFFFFF00) | ((word >> 24) & 0x000000FF)
+    elif amt == 2:
+        return ((word << 16) & 0xFFFF0000) | ((word >> 16) & 0x0000FFFF)
+    elif amt == 3:
+        return ((word << 24) & 0xFF000000) | ((word >> 8) & 0x00FFFFFF)
+
 def shift_rows_inv(state):
 
     for i in range(1,4,1):
-        word = tools.rot_word_R(state[i][0] << 24 | state[i][1] << 16 | state[i][2] << 8 | state[i][3], i)
+        word = rot_word_R(state[i][0] << 24 | state[i][1] << 16 | state[i][2] << 8 | state[i][3], i)
         converter = word.to_bytes(4, byteorder='big', signed=False)
         state[i][0] = int(converter[0])
         state[i][1] = int(converter[1])
@@ -201,7 +260,7 @@ def key_expansion(aes_key):
     for x in range(4, 44, 1):
 
         if x % 4 == 0:
-            temp = tools.rot_word_L(temp, 1)
+            temp = rot_word_L(temp, 1)
             #print(f'[Debug] After RotWord(): 0x{temp:02x}')
             temp = sub_word(temp)
             #print(f'[Debug] After SubWord(): 0x{temp:02x}')
@@ -280,7 +339,7 @@ def aes_decrypt(ct, key):
         #tools.debug_print_arr_2dhex_1line(round_key)
         #print()
 
-        state = tools.xor_2d(state, round_key)
+        state = xor_2d(state, round_key)
 
         for inv_curr_round in range(9, -1, -1):
 
@@ -305,7 +364,7 @@ def aes_decrypt(ct, key):
             #print()
 
             #print(f'[DECRYPT] round{10 - inv_curr_round}: ik_add')
-            state = tools.xor_2d(state, round_key)
+            state = xor_2d(state, round_key)
             #tools.debug_print_arr_2dhex_1line(state)
             #print()
 
@@ -330,4 +389,4 @@ def aes_dec_main(ct, key):
     plaintext = aes_decrypt(ct, key)
 
     print('[aesdecrypt.py] Plaintext:')
-    tools.debug_print_arr_hex_1line(plaintext)
+    debug_print_plaintext_ascii(plaintext)
