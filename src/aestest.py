@@ -31,24 +31,19 @@ if __name__ == '__main__':
     print("-----------------------------------")
 
     plaintext = tools.read_file("../input/plaintext.txt")
-    tools.debug_print_plaintext_ascii(plaintext)
+    # testkey = [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c]
+    #tools.debug_print_plaintext_ascii(plaintext)
 
-    plaintext = iso_iec_7816_4_pad(plaintext)
-
-    tools.debug_print_arr_hex(plaintext)
-
-
-    #testkey = [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c]
-
+    padded_plaintext = iso_iec_7816_4_pad(plaintext)
     key = os.urandom(16)
+
+    print(f'[aestest.py] AES Padded Plaintext (ASCII):')
+    tools.debug_print_plaintext_ascii(padded_plaintext)
+    print()
+
+    print(f'[aestest.py] AES 16 Byte Key (HEX):')
     tools.debug_print_arr_hex_1line(key)
-    keyarr = AESEncrypt.key_expansion(key )
+    print()
 
-    #tools.debug_print_arr_2dhex(keyarr)
-
-    mykey = AESEncrypt.extract_key(keyarr[0])
-
-    #tools.debug_print_arr_2dhex(mykey)
-
-    AESEncrypt.aes_main(key,key)
+    AESEncrypt.aes_main(padded_plaintext,key)
     #test_aes()

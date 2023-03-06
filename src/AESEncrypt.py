@@ -155,8 +155,70 @@ def extract_key(key):
 
     return byte_arr
 
-def aes_main(state, key):
-    print('hello')
+def populate_state(state, pt, curr_round):
+    for col in range(len(state[0])):
+        state[0][col] = pt[(col * 4) + (curr_round * 16)]
+        state[1][col] = pt[(col * 4 + 1) + (curr_round * 16)]
+        state[2][col] = pt[(col * 4 + 2) + (curr_round * 16)]
+        state[3][col] = pt[(col * 4 + 3) + (curr_round * 16)]
+
+def aes_encrypt(pt,key):
+    ciphertext = 0x00
+    key_schedule = key_expansion(key)
+    num_blocks = int(len(pt) / 16)
+    curr_round = 0
+
+    for i in range(num_blocks):
+        state = [[0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]]
+        populate_state(state, pt, curr_round)
+
+        round_key = extract_key(key_schedule[0])
+        state = tools.xor_2d(state, round_key)
+        for aes_round in range(1, 11, 1):
+            print(f'[ENCRYPT]: round{aes_round}: Start of Round')
+            tools.debug_print_arr_2dhex_1line(state)
+            print()
+
+            print(f'[ENCRYPT]: round{aes_round}: After SubBytes')
+            s_box_sub(state)
+            tools.debug_print_arr_2dhex_1line(state)
+            print()
+
+            print(f'[ENCRYPT]: round{aes_round}: After ShiftRows')
+            shift_rows(state)
+            tools.debug_print_arr_2dhex_1line(state)
+            print()
+
+            if aes_round != 10:
+                print(f'[ENCRYPT]: round{aes_round}: After MixColumns')
+                state = mix_cols(state)
+                tools.debug_print_arr_2dhex_1line(state)
+                print()
+
+            print(f'[ENCRYPT]: round{aes_round}: Round key Value')
+            round_key = extract_key(key_schedule[aes_round])
+            state = tools.xor_2d(state, round_key)
+            tools.debug_print_arr_2dhex_1line(round_key)
+            print()
+
+        print(f'AES Encrypt Complete')
+        tools.debug_print_arr_2dhex(state)
+
+        curr_round += 1
+
+
+    return ciphertext
+def aes_main(pt, key):
+    testpt = [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]
+    testkey = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f]
+
+    test1 = bytearray(testpt)
+    test2 = bytearray(testkey)
+
+    #ciphertext = aes_encrypt(pt,key)
+    ciphertext = aes_encrypt(test1, test2)
+
+    #todo call aes decrypt
 
 
 

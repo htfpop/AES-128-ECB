@@ -12,7 +12,7 @@ def debug_print_arr_hex(hex_array):
 
 def debug_print_arr_hex_1line(hex_array):
     for x in range(len(hex_array)):
-        print(format(hex_array[x], '02x'), end=' ')
+        print(format(hex_array[x], '#02x'), end=' ')
     print()
 
 
