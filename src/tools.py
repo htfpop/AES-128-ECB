@@ -26,7 +26,8 @@ def debug_print_arr_2dhex(hex_array):
         print()
 
 """
-Printing columns out from AES
+Printing columns out from AES using list comprehension
+https://www.w3schools.com/python/python_lists_comprehension.asp
 """
 def debug_print_arr_2dhex_1line(hex_array):
     for j in range(len(hex_array[0])):

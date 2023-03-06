@@ -45,5 +45,5 @@ if __name__ == '__main__':
     tools.debug_print_arr_hex_1line(key)
     print()
 
-    AESEncrypt.aes_main(padded_plaintext,key)
+    AESEncrypt.aes_enc_main(padded_plaintext,key)
     #test_aes()
