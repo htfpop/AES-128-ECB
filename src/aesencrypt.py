@@ -1,3 +1,11 @@
+""" **************************************************************
+* Programmer : Christopher K. Leung (2965-7518-69)               *
+* Course ID  : CSCI531 - Applied Cryptography                    *
+* Due Date   : March 5, 2023                                     *
+* Project    : AES128-ECB Implementation                         *
+* Purpose    : This project is an implementation of the Advanced *
+*              Encryption Standard (AES) using a 128-bit key.    *
+*****************************************************************"""
 import aesdecrypt
 
 mix_col_matrix = [ [0x02, 0x03, 0x01, 0x01],

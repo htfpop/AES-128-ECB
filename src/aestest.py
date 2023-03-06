@@ -1,3 +1,12 @@
+""" **************************************************************
+* Programmer : Christopher K. Leung (2965-7518-69)               *
+* Course ID  : CSCI531 - Applied Cryptography                    *
+* Due Date   : March 5, 2023                                     *
+* Project    : AES128-ECB Implementation                         *
+* Purpose    : This project is an implementation of the Advanced *
+*              Encryption Standard (AES) using a 128-bit key.    *
+*****************************************************************"""
+
 import aesencrypt
 import os
 import sys
