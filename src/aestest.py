@@ -21,7 +21,7 @@ Description: Iterates through entire 1D array and prints to screen.
 """
 def debug_print_arr_hex_1line(hex_array):
     for x in range(len(hex_array)):
-        print(format(hex_array[x], '#02x'), end=' ')
+        print(format(hex_array[x], '#04x'), end=' ')
     print()
 
 """
@@ -74,6 +74,7 @@ def check_empty(pt):
     for i in range(len(pt)):
         if pt[i] != 0x20:
             retval = False
+            break
     return retval
 
 
